@@ -10,6 +10,10 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 token_api = 'Your Token'
 url = 'https://api.telegram.org/bot'+token_api+'/'
+class JsonSerializable:
+    def to_json(self):
+        raise NotImplementedError
+        
 def getUpdates(offset=None, limit=None, timeout=None):
     Params = {
         'offset': offset,
@@ -28,6 +32,30 @@ def send_msg(chat_id, text, disable_web=None, reply_to_message_id=None, reply_ma
         'reply_markup': reply_markup
     }
     return requests.get(url + 'sendMessage', params=Params)
+def edit_msg(chat_id,message_id,text,parse_mode):
+    param = {
+    'chat_id':chat_id,
+    'message_id':message_id,
+    'text':text,
+    'parse_mode':parse_mode,
+    }
+    return requests.post(url + 'editMessageText', params=param)
+
+def send_photo(chat_id, photo, caption=None, reply_markup=None):
+    param = {
+    'chat_id':chat_id,
+    'caption':caption,
+    'reply_markup':reply_markup
+    }
+    file = {'photo':photo}
+    return requests.post(url + 'sendPhoto', params=param, files=file)
+
+def send_action(chat_id, action):
+    param = {
+    'chat_id':chat_id,
+    'action':action
+    }
+    return requests.post(url + 'sendchataction', params=param)
 
 def answerCallbackQuery(callback_query_id,text,show_alert=None):
     param = {
@@ -35,8 +63,15 @@ def answerCallbackQuery(callback_query_id,text,show_alert=None):
     'text':text,
     'show_alert':show_alert
     }
-    return requests.request(url + 'answerCallbackQuery', params=param, method='post')
+    return requests.post(url + 'answerCallbackQuery', params=param)
 
+def answerInlineQuery(inline_query_id,results,cache_time):
+    param = {
+    'inline_query_id':inline_query_id,
+    'results':results,
+    'cache_time':cache_time
+    }
+    return requests.post(url + 'answerInlineQuery', params=param)
 
 """
 handler message              _____'_____
@@ -56,15 +91,39 @@ def run ():
                     command = text
                     if(command == '/start' or command == '/help'):
                         getUpdates(last_update+1)
+                        send_action(chat_id,'typing')
                         key = json.dumps({'inline_keyboard':[[{'text':'Developer 👓','url':'https://telegram.me/negative'},{'text':'Taylor Team 🔌','url':'https://telegram.me/taylor_team'}]]})
-                        send_msg(chat_id,'<b>Taylor Team Development</b>',reply_markup=key)
+                        send_msg(chat_id,'<b>Taylor Team Development</b>\ncommands : \n/time\n/about',reply_markup=key)
                     if(command == '/time'):
                         getUpdates(last_update+1)
+                        send_action(chat_id,'typing')
                         time = urllib.urlopen('http://api.gpmod.ir/time/').read()
                         data = json.loads(time)
                         en = data['ENtime']
                         msgg = '<b>Time Tehran :</b> {}'.format(en)
                         send_msg(chat_id,msgg,reply_to_message_id=update['message']['message_id'])
+                    if(command == '/about'):
+                        getUpdates(last_update+1)
+                        send_action(chat_id,'upload_photo')
+                        markup = json.dumps({
+                        'inline_keyboard':[
+                        [
+                        {'text':'👇 Taylor Team 👇','callback_data':'1'}
+                        ],
+                        [
+                        {'text':'Developer 🕶','url':'https://telegram.me/negative'},
+                        {'text':'Channel','url':'https://telegram.me/taylor_team'}
+                        ]
+                        ]
+                        })
+                        send_photo(chat_id,open('photo-2016-06-09-01-09-41.jpg'),caption='@Taylor_Team',reply_markup=markup)
+                if 'callback_query' in update:
+                    data = update['callback_query']['data']
+                    call_id = update['callback_query']['id']
+                    message_idd = update['callback_query']['message']['message_id']
+                    id_from = update['callback_query']['message']['chat']['id']
+                    if(data == '1'):
+                        answerCallbackQuery(call_id,text='👇👇👇')
 
 run()
 
