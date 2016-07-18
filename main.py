@@ -22,16 +22,19 @@ def getUpdates(offset=None, limit=None, timeout=None):
     }
     return json.loads(requests.get(url + 'getUpdates', params=Params).content.decode('utf8'))
 
-def send_msg(chat_id, text, disable_web=None, reply_to_message_id=None, reply_markup=None):
-    Params = {
+def send_msg(chat_id, text, parse_mode=None, disable_web=None, reply_to_message_id=None, reply_markup=None):
+    param = {
         'chat_id': chat_id,
         'text': text,
-        'parse_mode':'HTML',
-        'disable_web_page_preview': disable_web,
-        'reply_to_message_id': reply_to_message_id,
-        'reply_markup': reply_markup
+        'parse_mode':'HTML'
     }
-    return requests.get(url + 'sendMessage', params=Params)
+    if disable_web:
+        param['disable_web_page_preview'] = disable_web
+    if reply_to_message_id:
+        param['reply_to_message_id'] = reply_to_message_id
+    if reply_markup:
+        param['reply_markup'] = reply_markup
+    return requests.get(url + 'sendMessage', params=param)
 def edit_msg(chat_id,message_id,text,parse_mode):
     param = {
     'chat_id':chat_id,
@@ -89,30 +92,15 @@ def answerInlineQuery(inline_query_id,results,cache_time):
     param = {
     'inline_query_id':inline_query_id,
     'results':results,
-    'cache_time':cache_time
     }
+    if cache_time:
+        param['cache_time'] = cache_time
     return requests.post(url + 'answerInlineQuery', params=param)
 
 """
 handler message              _____'_____
 start & copy right negative /Taylor Team\ MIT
                            |______'______|
-                
-                
-commands : 
-/help
-/info
-/time
-/about
-
-params :
-sendMessage
-sendPhoto
-getUserProfilePhotos
-callback_query
-inline_keyboard
-
-Taylor Team
 """
 def run ():
     last_update = 0
@@ -125,6 +113,7 @@ def run ():
                     try:
                         chat_id = update['message']['chat']['id']
                         text = update['message']['text']
+                        message = update['message']
                         command = text
                         if(command == '/start' or command == '/help'):
                             getUpdates(last_update+1)
@@ -133,7 +122,13 @@ def run ():
                             {'inline_keyboard':[[
                             {'text':'Developer 👓','url':'https://telegram.me/negative'},
                             {'text':'Taylor Team 🔌','url':'https://telegram.me/taylor_team'}
-                            ],[{'text':'Your Info 🕶','url':'https://telegram.me/Taylor_tmtmbot?start=info'}]
+                            ],
+                            [
+                            {'text':'Your Info 🕶','url':'https://telegram.me/Taylor_tmtmbot?start=info'}
+                            ],
+                            [
+                            {'text':'Taylor Team Inline','switch_inline_query':'taylor-team'}
+                            ]
                             ]
                             })
                             send_msg(chat_id,'<b>Taylor Team Development</b>\ncommands : \n/time\n/about',reply_markup=key)
@@ -176,14 +171,26 @@ def run ():
                             }
                             )
                             send_photo_file_id(chat_id,photo=s['result']['photos'][0][2]['file_id'],caption='ID : {}\nUsername : @{}\n@Taylor_Team'.format(user_id,username),reply_markup=markup)
-                    except:
-                        print 'add group'
+                        if(command == '/type'):
+                            if(update['message']['reply_to_message']['entities'][0]['type']):
+                                msg = update['message']['reply_to_message']['entities'][0]['type']
+                                send_msg(chat_id,'<b>{}</b>'.format(msg))
+                    except KeyError:
+                        print 'error'
                 if 'callback_query' in update:
+                    getUpdates(last_update+1)
                     data = update['callback_query']['data']
                     call_id = update['callback_query']['id']
                     message_idd = update['callback_query']['message']['message_id']
                     id_from = update['callback_query']['message']['chat']['id']
                     if(data == '1'):
                         answerCallbackQuery(call_id,text='👇👇👇\nDeveloper: Negative\nTeam : Taylor Team\ncommands :\n/time\n/about\n/help',show_alert=True)
+                if 'inline_query' in update:
+                    getUpdates(last_update+1)
+                    inline_query_idd = update['inline_query']['id']
+                    inline_query_query = update['inline_query']['query']
+                    if inline_query_query == 'taylor-team':
+                        jso = json.dumps([{'type':'photo','id':'1','photo_url':'http://vip.opload.ir/vipdl/95/3/negative23/photo-2016-06-09-01-09-41.jpg','thumb_url':'http://vip.opload.ir/vipdl/95/3/negative23/photo-2016-06-09-01-09-41.jpg','caption':'@Taylor_Team'}])
+                        answerInlineQuery(inline_query_id=inline_query_idd,results=[jso],cache_time=1)
 
 run()
