@@ -13,7 +13,7 @@ url = 'https://api.telegram.org/bot'+token_api+'/'
 class JsonSerializable:
     def to_json(self):
         raise NotImplementedError
-        
+
 def getUpdates(offset=None, limit=None, timeout=None):
     Params = {
         'offset': offset,
@@ -44,11 +44,25 @@ def edit_msg(chat_id,message_id,text,parse_mode):
 def send_photo(chat_id, photo, caption=None, reply_markup=None):
     param = {
     'chat_id':chat_id,
-    'caption':caption,
-    'reply_markup':reply_markup
     }
+    if caption:
+        param['caption'] = caption
+    if reply_markup:
+        param['reply_markup'] = reply_markup
     file = {'photo':photo}
     return requests.post(url + 'sendPhoto', params=param, files=file)
+
+def send_photo_file_id(chat_id, photo, caption=None, reply_markup=None):
+    param = {
+    'chat_id':chat_id,
+    }
+    if caption:
+        param['caption'] = caption
+    if reply_markup:
+        param['reply_markup'] = reply_markup
+    if photo:
+        param['photo'] = photo
+    return requests.post(url + 'sendPhoto', params=param)
 
 def send_action(chat_id, action):
     param = {
@@ -64,6 +78,12 @@ def answerCallbackQuery(callback_query_id,text,show_alert=None):
     'show_alert':show_alert
     }
     return requests.post(url + 'answerCallbackQuery', params=param)
+
+def getUserProfilePhotos(user_id):
+    param = {
+    'user_id':user_id
+    }
+    return json.loads(requests.post(url + 'getUserProfilePhotos', params=param).content.decode('utf8'))
 
 def answerInlineQuery(inline_query_id,results,cache_time):
     param = {
@@ -117,6 +137,22 @@ def run ():
                         ]
                         })
                         send_photo(chat_id,open('photo-2016-06-09-01-09-41.jpg'),caption='@Taylor_Team',reply_markup=markup)
+                    if(command == '/info'):
+                        getUpdates(last_update+1)
+                        send_action(chat_id,'typing')
+                        user_id = update['message']['from']['id']
+                        username = update['message']['from']['username']
+                        s = getUserProfilePhotos(update['message']['from']['id'])
+                        markup = json.dumps(
+                        {
+                        'inline_keyboard':[
+                        [
+                        {'text':'{}'.format(username),'url':'https://telegram.me/{}'.format(username)}
+                        ]
+                        ]
+                        }
+                        )
+                        send_photo_file_id(chat_id,photo=s['result']['photos'][0][2]['file_id'],caption='ID : {}\nUsername : @{}\n@Taylor_Team'.format(user_id,username),reply_markup=markup)
                 if 'callback_query' in update:
                     data = update['callback_query']['data']
                     call_id = update['callback_query']['id']
@@ -126,4 +162,3 @@ def run ():
                         answerCallbackQuery(call_id,text='👇👇👇')
 
 run()
-
