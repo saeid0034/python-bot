@@ -53,7 +53,7 @@ def send_photo(chat_id, photo, caption=None, reply_markup=None):
     if reply_markup:
         param['reply_markup'] = reply_markup
     file = {'photo':photo}
-    return requests.post(url + 'sendPhoto', params=param, files=file)
+    return requests.post(url + 'sendPhoto', params=param, files=file) # POST photo file no file_id
 
 def send_photo_file_id(chat_id, photo, caption=None, reply_markup=None):
     param = {
@@ -65,7 +65,7 @@ def send_photo_file_id(chat_id, photo, caption=None, reply_markup=None):
         param['reply_markup'] = reply_markup
     if photo:
         param['photo'] = photo
-    return requests.post(url + 'sendPhoto', params=param)
+    return requests.post(url + 'sendPhoto', params=param) ## POST photo file_id no file
 
 def send_action(chat_id, action):
     param = {
