@@ -113,7 +113,7 @@ def run ():
                         getUpdates(last_update+1)
                         send_action(chat_id,'typing')
                         key = json.dumps({'inline_keyboard':[[{'text':'Developer 👓','url':'https://telegram.me/negative'},{'text':'Taylor Team 🔌','url':'https://telegram.me/taylor_team'}]]})
-                        send_msg(chat_id,'<b>Taylor Team Development</b>\ncommands : \n/time\n/about',reply_markup=key)
+                        send_msg(chat_id,'<b>Taylor Team Development</b>\ncommands : \n/time\n/about\n/info',reply_markup=key)
                     if(command == '/time'):
                         getUpdates(last_update+1)
                         send_action(chat_id,'typing')
