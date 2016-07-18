@@ -177,7 +177,7 @@ def run ():
                             )
                             send_photo_file_id(chat_id,photo=s['result']['photos'][0][2]['file_id'],caption='ID : {}\nUsername : @{}\n@Taylor_Team'.format(user_id,username),reply_markup=markup)
                     except:
-                        print 'error'
+                        print 'add group'
                 if 'callback_query' in update:
                     data = update['callback_query']['data']
                     call_id = update['callback_query']['id']
