@@ -97,6 +97,22 @@ def answerInlineQuery(inline_query_id,results,cache_time):
 handler message              _____'_____
 start & copy right negative /Taylor Team\ MIT
                            |______'______|
+                
+                
+commands : 
+/help
+/info
+/time
+/about
+
+params :
+sendMessage
+sendPhoto
+getUserProfilePhotos
+callback_query
+inline_keyboard
+
+Taylor Team
 """
 def run ():
     last_update = 0
